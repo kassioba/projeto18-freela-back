@@ -227,3 +227,43 @@ export async function postProjects(req, res) {
     return res.status(500).send(err.message);
   }
 }
+
+export async function editStudent(req, res) {
+  const { name, cpf, email, photo, classes } = req.body;
+  const { id } = req.params;
+
+  try {
+    await db.query(
+      `UPDATE students SET name='${name}', cpf=${cpf}, photo='${photo}', email='${email}' WHERE id=$1`,
+      [id]
+    );
+
+    if (classes) {
+      const currentClassId = await db.query(
+        `SELECT * FROM students_class WHERE "studentId"=$1 AND "leaveDate" IS NULL`,
+        [id]
+      );
+
+      const classId = await db.query(
+        `SELECT * FROM classes WHERE "className"='${classes}'`
+      );
+
+      if (currentClassId.rows[0].classId === classId.rows[0].id)
+        return res.status(422).send("O aluno já pertence a essa classe");
+
+      await db.query(
+        `UPDATE students_class SET "leaveDate"=NOW() WHERE "studentId"=$1 AND "leaveDate" IS NULL`,
+        [id]
+      );
+
+      await db.query(
+        `INSERT INTO students_class ("studentId", "classId") VALUES ($1, ${classId.rows[0].id})`,
+        [id]
+      );
+    }
+
+    res.sendStatus(200);
+  } catch (err) {
+    return res.status(500).send(err.message);
+  }
+}

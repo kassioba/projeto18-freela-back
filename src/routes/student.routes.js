@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   changeGrade,
+  editStudent,
   getClasses,
   getInfosByClass,
   getProjectsByClass,
@@ -13,6 +14,7 @@ import {
   submitProject,
 } from "../controllers/student.controllers.js";
 import {
+  editValidation,
   projectSubmissionValidation,
   registerValidation,
 } from "../middlewares/students.middlewares.js";
@@ -30,5 +32,6 @@ studentRouter.get("/projects/:class/:project", getStudentsByClassAndProjects);
 studentRouter.put("/grade", changeGrade);
 studentRouter.post("/classes", postClasses);
 studentRouter.post("/projects", postProjects);
+studentRouter.put("/edit/:id", editValidation, editStudent);
 
 export default studentRouter
